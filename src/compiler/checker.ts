@@ -1254,7 +1254,15 @@ namespace ts {
                         combineValueAndTypeSymbols(symbolFromVariable, symbolFromModule) :
                         symbolFromModule || symbolFromVariable;
                     if (!symbol) {
-                        error(name, Diagnostics.Module_0_has_no_exported_member_1, getFullyQualifiedName(moduleSymbol), declarationNameToString(name));
+                        // Check to see if module we're exporting from has a default symbol with the same name as that which is being searched for
+                        const defaultSymbolMatches = moduleSymbol.exports.has("default") ?
+                            symbolToString(resolveSymbol(moduleSymbol.exports.get("default"))) === declarationNameToString(name) :
+                            false;
+                        if(defaultSymbolMatches) {
+                            error(name, Diagnostics.Module_0_has_no_exported_member_1_Did_you_mean_to_use_import_1_from_0_instead, getFullyQualifiedName(moduleSymbol), declarationNameToString(name));
+                        } else {
+                            error(name, Diagnostics.Module_0_has_no_exported_member_1, getFullyQualifiedName(moduleSymbol), declarationNameToString(name));
+                        }
                     }
                     return symbol;
                 }
